@@ -11,6 +11,12 @@ import org.apache.spark.{SparkConf, SparkContext}
   * version: 1.0
   * description:  
   */
+class Ord extends Ordering[Int] {
+  val t = 123
+  override def compare(x: Int, y: Int): Int = {
+    x - y
+  }
+}
 object Spark10_Oper9 {
   def main(args: Array[String]): Unit = {
     var config: SparkConf = new SparkConf().setMaster("local[*]").setAppName("WordCount")
@@ -25,10 +31,11 @@ object Spark10_Oper9 {
 
     //distinct  对数据进行去重，但是因为它会导致数据去重后减少，所以可以改变默认的分区数量
     //一个分区，就是一个任务（task)。一个任务，会分配到一个execuator
+    implicit val ord = new Ord
     var distinctRDD: RDD[Int] = listRDD.distinct(2)
-//    distinctRDD.collect().foreach(println//控制台打印，没有保存之前的顺序    401622337, 数据打乱重组，shuffle
+    distinctRDD.collect().foreach(println)//控制台打印，没有保存之前的顺序    401622337, 数据打乱重组，shuffle
 
-    distinctRDD.saveAsTextFile("output")//数据 进行了shuffle 打乱重组，没有保存之前的顺序，每个分区存的数据和之前不一样了。
+//    distinctRDD.saveAsTextFile("output")//数据 进行了shuffle 打乱重组，没有保存之前的顺序，每个分区存的数据和之前不一样了。
    //在spark中所有转换算子中，没有shuffle则速度快。
 
 

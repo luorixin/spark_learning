@@ -3,10 +3,11 @@ package com.sjyttkl.bigdata.Spark_streaming
 import java.io.{BufferedReader, InputStreamReader}
 import java.net.Socket
 
+import kafka.serializer.StringDecoder
 import org.apache.spark.SparkConf
 import org.apache.spark.storage.StorageLevel
-import org.apache.spark.streaming.dstream.{DStream, ReceiverInputDStream}
-import org.apache.spark.streaming.kafka.KafkaUtils
+import org.apache.spark.streaming.dstream.{DStream, InputDStream, ReceiverInputDStream}
+import org.apache.spark.streaming.kafka.{HasOffsetRanges, KafkaUtils, OffsetRange}
 import org.apache.spark.streaming.receiver.Receiver
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 
@@ -25,10 +26,12 @@ object SparkStreaming04_KafkaSource {
     //SparkSQL
     val config: SparkConf = new SparkConf().setMaster("local[*]").setAppName("SparkStreaming01_WordCount")
 
-    var streamingContext: StreamingContext = new StreamingContext(config, Seconds(3)) //3 秒钟，伴生对象，不需要new
+    var streamingContext: StreamingContext = new StreamingContext(config, Seconds(10)) //3 秒钟，伴生对象，不需要new
 
     //从kafka中采集数据
-    var kafkaDStream: ReceiverInputDStream[(String, String)] = KafkaUtils.createStream(streamingContext, "linux1:2181", "xiaodong", Map("xiaodong" -> 3))
+//    var kafkaDStream: ReceiverInputDStream[(String, String)] = KafkaUtils.createStream(streamingContext, "hadoop189:2181", "kafka_consume", Map("kafka_netcat_test" -> 1))
+    val kafkaParams = Map[String, String] ("metadata.broker.list" -> "kafka4:9092,kafka2:9093", "serializer.class" -> "kafka.serializer.StringDecoder")
+    val kafkaDStream = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](streamingContext, kafkaParams, Set("kafka_netcat_test"))
 
     //将采集的数据进行分解（偏平化）
     var WordDstream: DStream[String] = kafkaDStream.flatMap(t =>t._2.split(" ")) //偏平化后，按照空格分割
@@ -41,6 +44,18 @@ object SparkStreaming04_KafkaSource {
 
     //打印结果
     wordToSumStream.print()
+
+    //2. 消费每个batch时， 获取offsets
+    var offsetRanges = Array[OffsetRange]()
+    kafkaDStream.transform { rdd =>
+      offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
+      rdd
+    }.foreachRDD { rdd =>
+      for (o <- offsetRanges) {
+        println(s"${o.topic} ${o.partition} ${o.fromOffset} ${o.untilOffset}")
+      }
+    }
+
 
     //streamingContext.stop()  //不能停止我们的采集功能
 

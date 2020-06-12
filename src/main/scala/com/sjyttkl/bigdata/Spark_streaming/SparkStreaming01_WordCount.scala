@@ -23,7 +23,7 @@ object SparkStreaming01_WordCount {
     var streamingContext: StreamingContext = new StreamingContext(config, Seconds(3))//3 秒钟，伴生对象，不需要new
 
     //从指定的端口中采集数据
-    var socketLineStreaming :ReceiverInputDStream[String] = streamingContext.socketTextStream("linux1", 9999) //一行一行的接受
+    var socketLineStreaming :ReceiverInputDStream[String] = streamingContext.socketTextStream("localhost", 11111) //一行一行的接受
 
     //将采集的数据进行分解（偏平化）
     var WordDstream: DStream[String] = socketLineStreaming.flatMap(line => line.split(" "))//偏平化后，按照空格分割

@@ -25,7 +25,7 @@ object SparkSQL01_Demo {
     val session: SparkSession = SparkSession.builder().config(config).getOrCreate()
 
     //读取数据，构建DataFrame
-    var frame: DataFrame = session.read.json("in/user.json")
+    var frame: DataFrame = session.read.json("../../study/spark_learning/in/user.json")
 
     //展示数据
     frame.show()

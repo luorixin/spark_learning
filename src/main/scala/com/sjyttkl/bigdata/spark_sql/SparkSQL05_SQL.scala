@@ -23,9 +23,8 @@ object SparkSQL05_SQL {
      // .config("spark.sql.warehouse.dir", warehouseLocation)
       .enableHiveSupport()
       .getOrCreate()
-     val rdd = sparkSession.sparkContext.textFile("in/person.txt")
+     val rdd = sparkSession.sparkContext.textFile("../../study/spark_learning/in/person.txt")
     //var frame: DataFrame = sparkSession.read.json("in/user.json")
-
     //整理数据，ROW类型
     val rowrdd = rdd.map(line=>{
       val fields = line.split(",")

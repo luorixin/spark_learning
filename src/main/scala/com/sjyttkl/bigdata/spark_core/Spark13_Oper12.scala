@@ -40,6 +40,7 @@ object Spark13_Oper12 {
 
     //使用combineByKeyWithClassTag 计算平均值，没有初始值，但是要变成 （key,value）_1，再次有分区内和分区间
     var combine: RDD[(String, (Int, Int))] = listRDD.combineByKeyWithClassTag((_, 1), (acc: (Int, Int), v) => (acc._1 + v, acc._2 + 1), (acc1: (Int, Int), acc2: (Int, Int)) => (acc1._1 + acc2._1, acc1._2 + acc2._2))
+    combine.foreach(println)
     val result = combine.map{case(key,value)=>(key,value._1/value._2.toDouble)}
     var combineRDD: RDD[(String, Int)] = listRDD.combineByKeyWithClassTag(x => x, (x: Int, y) => x + y, (x: Int, y: Int) => x + y)//统计wordCount
     //    listRDD.combineByKeyWithClassTag(x=>x ,_+_,_+_)这个会报错，因为它推断不出来类型
@@ -48,6 +49,7 @@ object Spark13_Oper12 {
 
     //mapValue 只对 value操作，不看key,一般用在分组之后，求和，最大值等？
     var mapValueRDD: RDD[(String, String)] = listRDD.mapValues(_ + "||")
+    mapValueRDD.foreach(println)
     //join ,两个数据集进行join,如果不存在则不出现,性能比较低
     var joinRDD: RDD[(String, (Int, Int))] = listRDD.join(listRDD2)
 

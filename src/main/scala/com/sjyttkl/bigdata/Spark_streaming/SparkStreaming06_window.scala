@@ -1,5 +1,6 @@
 package com.sjyttkl.bigdata.Spark_streaming
 
+import kafka.serializer.StringDecoder
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.dstream.{DStream, ReceiverInputDStream}
 import org.apache.spark.streaming.kafka.KafkaUtils
@@ -35,8 +36,9 @@ object SparkStreaming06_window {
     streamingContext.sparkContext.setCheckpointDir("cp")
 
     //从kafka中采集数据
-    var kafkaDStream: ReceiverInputDStream[(String, String)] = KafkaUtils.createStream(streamingContext, "linux1:2181", "xiaodong", Map("xiaodong" -> 3))
-
+//    var kafkaDStream: ReceiverInputDStream[(String, String)] = KafkaUtils.createStream(streamingContext, "linux1:2181", "xiaodong", Map("xiaodong" -> 3))
+    val kafkaParams = Map[String, String] ("metadata.broker.list" -> "kafka4:9092,kafka2:9093", "serializer.class" -> "kafka.serializer.StringDecoder")
+    val kafkaDStream = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](streamingContext, kafkaParams, Set("kafka_netcat_test"))
 
     //窗口大小应该为采集周期的整数倍，窗口滑动步长也应该是采集周期的整数倍
     var windowDStream: DStream[(String, String)] = kafkaDStream.window(Seconds(9), Seconds(3))
